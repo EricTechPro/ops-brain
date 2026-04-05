@@ -198,29 +198,57 @@ Install required packages:
 ```
 Gmail API Setup (~5 min, one-time):
 
-  1. Go to console.cloud.google.com
-     → Create a project (or select existing)
-     → Search "Gmail API" → Enable it
+  Step 1 — Create a Google Cloud project
+    1. Go to console.cloud.google.com
+    2. Click the project dropdown (top-left, next to "Google Cloud")
+    3. Click "New Project"
+    4. Name it anything (e.g. "Ops Brain") → Create
+    5. Make sure your new project is selected in the dropdown
 
-  2. APIs & Services → Credentials → Create → OAuth Client ID
-     → Application type: Desktop app
-     → Download the JSON file
+  Step 2 — Enable the Gmail API
+    1. In the search bar at the top, type "Gmail API"
+    2. Click "Gmail API" in the results
+    3. Click "Enable"
 
-  3. Save it to:
-     scripts/.gmail-credentials/credentials.json
+  Step 3 — Configure OAuth consent screen
+    1. Go to APIs & Services → OAuth consent screen (left sidebar)
+    2. Select "External" → Create
+    3. Fill in only the required fields:
+       - App name: Ops Brain
+       - User support email: your email
+       - Developer contact email: your email
+    4. Click "Save and Continue" through the remaining steps
+    5. Click "Back to Dashboard"
 
-  4. Create scripts/.env with your email:
+  Step 4 — Create OAuth credentials
+    1. Go to APIs & Services → Credentials (left sidebar)
+    2. Click "+ Create Credentials → OAuth client ID"
+    3. Application type: Desktop app
+    4. Name: Ops Brain (or anything)
+    5. Click "Create"
+    6. Click "Download JSON" on the confirmation dialog
+    7. Save the file to:
+       scripts/.gmail-credentials/credentials.json
 
-     GMAIL_USER_EMAIL=you@yourdomain.com
-     GMAIL_CREDENTIALS_FILE=scripts/.gmail-credentials/credentials.json
-     GMAIL_TOKEN_FILE=scripts/.gmail-credentials/token.json
-     GMAIL_DOWNLOAD_DIR=/tmp/gmail-sync
+  Step 5 — Configure your environment
+    Create scripts/.env (or copy scripts/.env.example):
 
-  5. Authenticate (opens browser once):
-     python3 scripts/gmail_sync.py label "INBOX" --max-results 1
+      GMAIL_USER_EMAIL=you@yourdomain.com
+      GMAIL_CREDENTIALS_FILE=scripts/.gmail-credentials/credentials.json
+      GMAIL_TOKEN_FILE=scripts/.gmail-credentials/token.json
+      GMAIL_DOWNLOAD_DIR=/tmp/gmail-sync
 
-  ✓ token.json is auto-generated after you consent
-  🔒 scripts/ is in .gitignore — credentials never leave your machine
+  Step 6 — Install Python dependencies
+    pip3 install -r scripts/requirements.txt
+
+  Step 7 — Authenticate (opens browser once)
+    python3 scripts/gmail_sync.py label "INBOX" --max-results 1
+
+    Your browser opens → sign in → click Allow.
+    token.json is saved automatically. One-time only.
+
+  🔒 scripts/.env and credentials are in .gitignore
+     — they never leave your machine.
 ```
 
 Ask: "Have you completed Gmail setup, want help walking through it now, or skip for later?"
