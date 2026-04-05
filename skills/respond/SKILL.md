@@ -1,6 +1,6 @@
 ---
 name: respond
-description: Craft an email response for a project interaction.
+description: "Draft an email response as browser-openable HTML with one-click copy for Gmail. Reads project context, conversation history, and contact preferences to match tone. Auto-applies business cooperation style for partnership/sales/sponsorship threads. Use when the user says \"reply to\", \"draft a response\", \"write an email to\", \"respond to this email\", or \"help me answer this\"."
 ---
 
 ## Steps
@@ -11,12 +11,12 @@ description: Craft an email response for a project interaction.
 > Read and execute `shared/project-picker.md`
 > Params: allow_new = false
 
-   Also ask:
+2. **Understand the request** — If the user provided context inline (e.g., `/respond acme-corp reply to Sarah's pricing question — confirm $5k/month`), parse it and only ask for what's missing. Otherwise ask:
    - What are you responding to? (paste the email or describe it)
    - Key points to include in the response
    - Tone: professional / friendly / firm / casual
 
-2. **Read project context**
+3. **Read project context**
 
 > [!sub-workflow] Read Project Context
 > Read and execute `shared/read-project-context.md`
@@ -24,12 +24,14 @@ description: Craft an email response for a project interaction.
 
    Use contacts, communication prefs, and recent entries to inform the draft.
 
-3. **Load style guide** — If the email involves business cooperation, partnerships, sales, or sponsorship:
+   If the email being replied to is part of an ongoing thread, search conversation-log.md for matching `thread:<id>` or subject line entries. Use the thread history to maintain continuity — reference previous commitments, follow up on open questions, and avoid repeating information already exchanged.
+
+4. **Load style guide** — This detection happens automatically — no need to ask the user. If the project overview mentions partnerships, sales, or sponsorship in its scope, or if the email content involves pricing, proposals, or collaboration terms:
    - Read `templates/business-cooperation-style.md`
    - Identify the conversation stage (initial contact / discovery / proposal / objection handling / closing / follow-up)
    - Apply the style directives when drafting — use Eric's proven patterns as the foundation
 
-4. **Create response file** — Generate a single standalone HTML file at `projects/[name]/responses/YYYY-MM-DD-topic.html` using this structure:
+5. **Create response file** — Generate a single standalone HTML file at `projects/[name]/responses/YYYY-MM-DD-topic.html` using this structure:
 
    ```html
    <!DOCTYPE html>
@@ -58,14 +60,23 @@ description: Craft an email response for a project interaction.
        <!-- No inline CSS, no <style> blocks in the body -->
      </div>
      <script>
-       function copyEmail() {
+       async function copyEmail() {
          const body = document.getElementById('email-body');
+         const sel = window.getSelection();
          const range = document.createRange();
          range.selectNodeContents(body);
-         const sel = window.getSelection();
          sel.removeAllRanges();
          sel.addRange(range);
-         document.execCommand('copy');
+         try {
+           await navigator.clipboard.write([
+             new ClipboardItem({
+               'text/html': new Blob([body.innerHTML], { type: 'text/html' }),
+               'text/plain': new Blob([body.innerText], { type: 'text/plain' })
+             })
+           ]);
+         } catch {
+           document.execCommand('copy');
+         }
          sel.removeAllRanges();
          const btn = document.querySelector('.copy-btn');
          btn.textContent = 'Copied!';
@@ -83,9 +94,9 @@ description: Craft an email response for a project interaction.
    - Add internal strategy notes as an HTML comment `<!-- ... -->` (not visible, not copied)
    - After creating the file, open it in the browser with `open` command
 
-5. **Present and open** — Show the email text in the conversation for review. After approval, open the HTML file in the default browser. Eric clicks "Copy to clipboard" → pastes into Gmail compose.
+6. **Present and open** — Show the email text in the conversation for review. After approval, open the HTML file in the default browser. Eric clicks "Copy to clipboard" → pastes into Gmail compose.
 
-6. **After sending** — Ask: "Have you sent it?"
+7. **After sending** — Ask: "Have you sent it?"
    - If yes:
 
 > [!sub-workflow] Log and Extract

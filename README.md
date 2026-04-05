@@ -15,15 +15,55 @@ claude plugin install ops-brain
 
 | Skill | Command | What it does |
 |-------|---------|-------------|
-| Daily | `/daily` | Morning briefing — scans all projects for pending tasks, recent activity, and inbox status |
-| Log | `/log` | Adds a timestamped entry to a project's conversation log and extracts action items |
 | Onboard | `/onboard` | Sets up new or existing projects — imports from Gmail, files, or pasted text |
-| Respond | `/respond` | Crafts an email as copyable HTML, opens in browser, logs after sending, deletes file |
 | Sync Project | `/sync-project` | Fetches emails from a Gmail label, dedupes, threads, routes attachments |
+| Daily | `/daily` | Morning briefing — scans all projects for pending tasks, recent activity, and inbox status |
+| Respond | `/respond` | Crafts an email as copyable HTML, opens in browser, logs after sending, deletes file |
+| Log | `/log` | Adds a timestamped entry to a project's conversation log and extracts action items |
 
 ---
 
-## How Each Skill Works
+## How the Workflow Works
+
+```
+╔══════════════════╗      ╔══════════════════╗      ╔══════════════════╗
+║ 1. /onboard      ║─────▶║ 2. /sync-project ║─────▶║ 3. /daily        ║
+║ Set up project,  ║      ║ Pull new emails  ║      ║ Morning check-in ║
+║ import data      ║      ║ from Gmail       ║      ║ see what's due   ║
+║ (once)           ║      ║ (periodically)   ║      ║ (every morning)  ║
+╚══════════════════╝      ╚══════════════════╝      ╚════════╤═════════╝
+                                                              │
+                                              ┌───────────────┼───────────────┐
+                                              ▼               ▼               ▼
+                                     ╔════════════════╗╔═════════════╗╔══════════════╗
+                                     ║ 4. /respond    ║║ 5. /log     ║║ /onboard     ║
+                                     ║ Reply to email ║║ Log a call  ║║ Import more  ║
+                                     ║ (as needed)    ║║ or meeting  ║║ data         ║
+                                     ╚═══════╤════════╝║ (as needed) ║╚══════════════╝
+                                              │        ╚══════╤══════╝
+                                              │               │
+                                              ▼               │
+                                     ╔════════════════╗       │
+                                     ║ Sent? → auto   ║───────┘
+                                     ║ logs via /log  ║
+                                     ╚════════════════╝
+```
+
+### Quick Reference
+
+| When | Run | How often |
+|------|-----|-----------|
+| New project or importing data | `/onboard` | Once per project |
+| New emails to pull in | `/sync-project` | Periodically |
+| Start of day | `/daily` | Every morning |
+| Need to reply to someone | `/respond` | As needed |
+| After a call, meeting, or event | `/log` | As needed |
+
+---
+
+## Skill Flows
+
+Detailed step-by-step breakdowns for each skill.
 
 ### `/daily` — Morning Dashboard
 
@@ -43,8 +83,6 @@ claude plugin install ops-brain
                           ║  note             ║     ║  files            ║
                           ╚═══════════════════╝     ╚═══════════════════╝
 ```
-
-**Sub-workflows called:** None — reads vault files directly
 
 **Example output:**
 ```
@@ -85,8 +123,6 @@ claude plugin install ops-brain
                                                                  ║ [ ] → [x] ✓    ║
                                                                  ╚═════════════════╝
 ```
-
-**Sub-workflows called:** `project-picker` → `log-and-extract`
 
 **Example:**
 ```
@@ -152,10 +188,6 @@ Any existing items completed?
                ╚════════════════════════════════════╝
 ```
 
-**Sub-workflows called:** `project-picker` → `route-files` → `log-and-extract`
-
-**Scripts:** `python3 scripts/gmail_sync.py` (Gmail path only)
-
 **Example output:**
 ```
 ## Onboarding Report: acme-corp
@@ -206,16 +238,6 @@ What's next?
                       ╚═══════════════╝
 ```
 
-**Sub-workflows called:** `project-picker` → `read-project-context` → `log-and-extract`
-
-**File created:** `projects/<name>/responses/YYYY-MM-DD-topic.html` (temporary — deleted after sending)
-
-**The HTML file includes:**
-- "Copy to clipboard" button (top-right corner)
-- Meta section with To / Subject / Date (visible but not copied)
-- Clean email body using only `<p>`, `<b>`, `<br>`, `<ul>`, `<li>`
-- Hidden strategy notes as `<!-- HTML comments -->`
-
 **Example:**
 ```
 > /respond acme-corp
@@ -263,10 +285,6 @@ Have you sent it?
                                            ╚═══════════════════════╝
 ```
 
-**Sub-workflows called:** `project-picker` → `read-project-context` → `log-and-extract` (per email) → `route-files`
-
-**Script:** `python3 scripts/gmail_sync.py label <label> --max-results 100 --download-attachments /tmp/gmail-sync`
-
 **Example output:**
 ```
 Synced acme-corp: 5 new emails across 2 threads
@@ -279,49 +297,28 @@ Action items: 2 added
 
 ---
 
-## Recommended Usage Order
-
-```
-╔═══════════╗     ╔════════════════╗     ╔═════════╗     ╔═════════╗     ╔═══════════╗
-║ /onboard  ║────▶║ /sync-project  ║────▶║ /daily  ║────▶║  /log   ║────▶║ /respond  ║
-║           ║     ║                ║     ║         ║     ║         ║     ║           ║
-║ First-time║     ║ Pull new       ║     ║ Morning ║     ║ After   ║     ║ Reply to  ║
-║ setup     ║     ║ emails         ║     ║ check-in║     ║ meetings║     ║ emails    ║
-╚═══════════╝     ╚════════════════╝     ╚═════════╝     ╚═════════╝     ╚═══════════╝
-  once              periodically          each morning     as needed       as needed
-```
-
----
-
 ## Shared Sub-Workflows
 
 Internal modules in `shared/` used by the skills above. Not user-invokable.
 
 | Module | Used By | What it does |
 |--------|---------|-------------|
-| `project-picker` | all 5 skills | Lists projects from `projects/`, resolves user selection, optionally creates new project with full folder structure |
-| `read-project-context` | `/respond`, `/sync-project` | Reads `overview.md` + `conversation-log.md` → returns contacts, Gmail config, recent entries, pending actions |
-| `log-and-extract` | `/log`, `/respond`, `/sync-project`, `/onboard` | Writes an emoji-formatted entry under the correct date heading, scans for action items, adds them to `## Action Items` |
-| `route-files` | `/onboard`, `/sync-project` | Classifies files by content/filename and routes them to `constants/`, `links.md`, `shared/deliverables/`, or conversation log |
+| `project-picker` | all 5 skills | Lists projects from `projects/`, resolves user selection, optionally creates new project |
+| `read-project-context` | `/respond`, `/sync-project` | Reads `overview.md` + `conversation-log.md` → returns contacts, Gmail config, recent entries |
+| `log-and-extract` | `/log`, `/respond`, `/sync-project`, `/onboard` | Writes emoji-formatted entry + scans for action items |
+| `route-files` | `/onboard`, `/sync-project` | Classifies files and routes to `constants/`, `links.md`, `deliverables/`, or log |
 
-**How sub-workflows connect to skills:**
 ```
-/daily ──────────────────────────────────────── (no sub-workflows, reads directly)
-
+/daily ─────────────────────────────────── (reads directly, no sub-workflows)
 /log ──────── project-picker → log-and-extract
-
 /onboard ──── project-picker → route-files → log-and-extract
-
 /respond ──── project-picker → read-project-context → log-and-extract
-
 /sync-project ─ project-picker → read-project-context → log-and-extract → route-files
 ```
 
 ---
 
 ## Required Vault Structure
-
-Your Obsidian vault needs this layout:
 
 ```
 your-vault/
@@ -344,24 +341,24 @@ your-vault/
 
 ## Gmail Integration
 
-Requires `scripts/gmail_sync.py` with OAuth2 (read-only access). Used by `/sync-project` and `/onboard` for email import. See the vault's `scripts/` directory for setup.
+Requires `scripts/gmail_sync.py` with OAuth2 (read-only access). Used by `/sync-project` and `/onboard` for email import.
 
 ## File Locations
 
 ```
 .claude/skills/ops-brain/
-├── README.md                          ← you are here
+├── README.md
 ├── skills/
-│   ├── daily/SKILL.md                 ← /daily
-│   ├── log/SKILL.md                   ← /log
-│   ├── onboard/SKILL.md               ← /onboard
-│   ├── respond/SKILL.md               ← /respond
-│   └── sync-project/SKILL.md          ← /sync-project
+│   ├── daily/SKILL.md
+│   ├── log/SKILL.md
+│   ├── onboard/SKILL.md
+│   ├── respond/SKILL.md
+│   └── sync-project/SKILL.md
 └── shared/
-    ├── project-picker.md              ← select/create project
-    ├── read-project-context.md        ← load project data
-    ├── log-and-extract.md             ← write entry + action items
-    └── route-files.md                 ← classify + route files
+    ├── project-picker.md
+    ├── read-project-context.md
+    ├── log-and-extract.md
+    └── route-files.md
 ```
 
 ## License

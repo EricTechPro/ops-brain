@@ -1,6 +1,6 @@
 ---
 name: sync-project
-description: Smart sync a project's emails from Gmail — fetches all emails under their Gmail label, deduplicates against what's already logged, validates existing entries, groups by thread, and routes attachments. For ongoing syncs after initial onboarding.
+description: "Fetch new emails from a project's Gmail label, deduplicate against the conversation log, group by thread, route attachments, and extract action items. Use when the user says \"sync emails\", \"check for new emails\", \"pull latest for <project>\", or \"update <project> from Gmail\"."
 ---
 
 **Usage:** `/sync-project <project-name>`
@@ -19,9 +19,17 @@ description: Smart sync a project's emails from Gmail — fetches all emails und
 
 From the context, use `gmail_config` (label name, synced message IDs, last sync date).
 If no `## Gmail Sync` section exists in overview.md, ask for the Gmail label name and create the section.
+If `gmail_config_partial = true` (malformed section), show the user what's wrong and offer to fix it before proceeding.
 
 ### 2. Fetch all emails from label
+- Before running, check if `/tmp/gmail-sync` already exists. If it does (likely from a previous failed run), list its contents and creation time, then ask: "Found leftover sync data from a previous run. Delete it and start fresh, or try to resume with existing data?"
 - Run: `python3 scripts/gmail_sync.py label <label> --max-results 100 --download-attachments /tmp/gmail-sync`
+- If the script fails, auto-retry once. If it fails again, identify the cause and report clearly:
+  - **Script not found** (`scripts/gmail_sync.py` missing): "Gmail sync script not found at scripts/gmail_sync.py."
+  - **Auth expired** (OAuth error in output): "Gmail auth has expired. Run `python3 scripts/gmail_sync.py auth` to re-authenticate, then retry."
+  - **Network error** (connection/timeout): "Couldn't reach Gmail — check your internet connection."
+  - **No results** (empty JSON array): "No emails found under this label. Verify the label name in Gmail."
+  - In all failure cases, do not proceed to step 3. Report the error and stop.
 - Parse JSON output — each message has `id`, `thread_id`, `subject`, `body`, `direction`, `from`, `attachments`
 
 ### 3. Deduplicate + validate

@@ -1,6 +1,6 @@
 ---
 name: onboard
-description: Onboard new or existing projects — import data from Gmail labels, local files, or pasted text, auto-extract profile info, and generate a key events report.
+description: "Set up a new project or bulk-import data into an existing one from Gmail labels, local files, or pasted text. Creates folder structure, auto-extracts client profile and contacts, generates a key events timeline. Use for \"new project\", \"set up a project\", \"import project data\", \"add a new client\", or \"re-import data for <project>\"."
 ---
 
 **Usage:** `/onboard` or `/onboard <project-name>`
@@ -27,8 +27,9 @@ Process paths A, B, and C in parallel when multiple sources are provided.
 
 ### Path A — Gmail Import
 - Set up `## Gmail Sync` in overview.md with the label name
-- Run `/sync-project` logic: fetch emails, group by thread, write to conversation-log.md, route attachments, extract links and action items, update synced IDs
-- For new projects, skip deduplication (log is empty)
+- Execute the same Gmail fetch → log → route pipeline from `/sync-project` steps 2-7, with these onboarding adjustments: skip deduplication for new projects (log is empty), create `## Gmail Sync` section fresh
+- If `gmail_sync.py` fails (script not found, OAuth expired, network error, no results for label): auto-retry once. If it fails again, report the specific error in plain language and offer: (a) fix the issue and retry, (b) skip Gmail and continue with other sources, (c) paste email text directly (fall through to Path C)
+- If any required template is missing from `templates/`, create the file with minimal valid structure (frontmatter + section headings) and note which template was missing so it can be restored later
 
 ### Path B — Local File Import
 
