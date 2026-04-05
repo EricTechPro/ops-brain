@@ -5,6 +5,80 @@ description: "First-run vault setup and health check: verify folder structure, s
 
 **Usage:** `/start`
 
+## Step 0: Pre-check — Dependencies
+
+Before anything else, verify the environment has what it needs. Run all checks silently, then report.
+
+### 0a. Obsidian
+
+Check if `.obsidian/` directory exists in the vault root.
+
+- **If missing:** The vault isn't set up as an Obsidian vault yet. Show:
+
+```
+Obsidian not detected (.obsidian/ folder missing).
+
+This vault is designed to work with Obsidian — a free, local-first
+note-taking app that gives you a visual interface for your notes.
+
+  1. Download Obsidian: https://obsidian.md
+  2. Open Obsidian → "Open folder as vault" → select this folder
+  3. Re-run /start
+
+You can still use the CLI skills without Obsidian, but you'll miss
+the visual graph, search, and linking features.
+```
+
+Ask: "Continue without Obsidian, or set it up first?"
+- **Continue** → proceed (skills work fine without it)
+- **Set up first** → stop here, let them install and come back
+
+- **If present:** silently pass. No output needed.
+
+### 0b. Obsidian community plugins (optional)
+
+If `.obsidian/` exists, check `.obsidian/community-plugins.json`. This is informational only — don't block on it. If the file is empty or contains `[]`, mention:
+
+```
+Tip: Obsidian community plugins can enhance your vault.
+Recommended: Dataview, Tasks, Calendar, Templater.
+You can install these later from Obsidian → Settings → Community plugins.
+```
+
+### 0c. Claude Code plugins
+
+Check that the required Claude Code plugins are installed by running `claude plugin list`.
+
+**Required:**
+- `ops-brain` — the core plugin (must be installed since they're running `/start`, but verify)
+
+**Recommended:**
+- `obsidian` (from obsidian-skills) — Obsidian-aware markdown, canvas, and bases skills
+
+For any missing recommended plugin, show install commands:
+
+```
+Recommended plugin not installed: obsidian
+
+  Install it:
+    claude plugin marketplace add github:kepano/obsidian-skills
+    claude plugin install obsidian --scope project
+```
+
+### 0d. Summary
+
+Show a compact status line:
+
+```
+Pre-check:
+  Obsidian:       detected ✓ / not found ✗
+  Obsidian plugins: N community plugins / none yet
+  ops-brain:      installed ✓
+  obsidian-skills: installed ✓ / not installed (optional)
+```
+
+If all required checks pass, proceed to Step 1. If Obsidian is missing and the user chose to set it up first, stop here.
+
 ## Step 1: Welcome Banner + State Detection
 
 Display the welcome banner:
