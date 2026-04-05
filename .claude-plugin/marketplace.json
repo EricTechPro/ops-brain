@@ -1,0 +1,16 @@
+{
+  "name": "ops-brain",
+  "description": "Project operations for Claude Code — manage multiple projects",
+  "owner": {
+    "name": "Eric Tech",
+    "url": "https://github.com/EricTechPro"
+  },
+  "plugins": [
+    {
+      "name": "ops-brain",
+      "source": "./",
+      "description": "Project operations — daily briefings, conversation logging, email responses, Gmail sync, and project onboarding.",
+      "version": "1.0.0"
+    }
+  ]
+}
