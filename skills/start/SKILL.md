@@ -154,6 +154,17 @@ Report results:
 - If all present: "All vault folders present ✓"
 - If any created: "Created: inbox/, archives/" (list what was created)
 
+### Deploy Gmail sync script
+
+The Gmail sync script ships with the ops-brain plugin. Deploy it to the vault if not already present:
+
+1. Check if `scripts/gmail_sync.py` exists in the vault
+2. If missing, copy it from the plugin's `scripts/` directory (relative to this skill: `../../scripts/gmail_sync.py`) into the vault's `scripts/gmail_sync.py`
+3. Do the same for `scripts/requirements.txt` and `scripts/.env.example`
+4. Report: "Gmail sync script: deployed ✓" or "Gmail sync script: already present ✓"
+
+> **Important:** Never copy `.env`, `.gmail-credentials/`, or `__pycache__/` — these contain user-specific secrets and are created during Gmail setup (Step 4).
+
 Check templates exist in `templates/`:
 - `conversation-log.md`, `project-overview.md`, `link-library.md`
 - If any missing: warn (do not create — templates are hand-crafted)

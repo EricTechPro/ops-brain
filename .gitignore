@@ -1,2 +1,7 @@
 evals/
 ops-brain-workspace/
+
+# Gmail credentials — never commit
+scripts/.env
+scripts/.gmail-credentials/
+scripts/__pycache__/
