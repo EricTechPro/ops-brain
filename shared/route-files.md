@@ -40,6 +40,7 @@ For each file, detect its type and route accordingly:
 
 1. For each file in `<files>`:
    - Detect type using the heuristics above
+   - Before writing to the destination, check if a file with the same name already exists there. If it does: (a) if the contents are identical, skip it and note "duplicate skipped"; (b) if contents differ, append a timestamp suffix (`-YYYYMMDD-HHMM`) before the extension and note both versions to the user.
    - Route to the correct destination
    - Perform the associated action (move, summarize, parse, etc.)
    - Track what was routed where

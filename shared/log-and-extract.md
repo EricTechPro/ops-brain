@@ -12,7 +12,7 @@ Write a formatted entry to a project's conversation log and extract any action i
 ## Steps
 
 ### 1. Open conversation log
-Open `projects/<project-name>/conversation-log.md`
+Open `projects/<project-name>/conversation-log.md`. If it doesn't exist, create it from `templates/conversation-log.md` (replace `{{date}}` with today, `{{Project Name}}` with the project name). If the template is also missing, create a minimal file with frontmatter and these sections: `## Action Items`, `## Log`, `## Completed`.
 
 ### 2. Find or create headings
 - Find the current month heading `### YYYY-MM`. If missing, create it in chronological order.
@@ -38,7 +38,7 @@ If `<thread>` is provided (used by /sync-project):
 - Add the entry under the thread heading instead of directly under the date
 
 ### 5. Write the entry
-Add the formatted entry under today's date (or thread heading). Newest entries at top within the day.
+Add the formatted entry under today's date (or thread heading). Within a date heading, non-threaded entries go newest-at-top. Threaded entries (under `##### 🧵` headings) are chronological within each thread — thread context reads top-to-bottom.
 
 If a deliverable or document is referenced, add a wikilink: `→ [[shared/deliverables/filename]]`
 

@@ -9,7 +9,9 @@ Identify which project the user wants to work with.
 
 1. **Check if project was provided as argument** — if the user already specified a project name (e.g., `/log acme-corp`), skip to step 3.
 
-2. **Present options** — Scan `projects/` for folder names. Present as a numbered list:
+2. **Present options** — Scan `projects/` for folder names.
+   - If `projects/` is empty (no folders): if `allow_new = true`, prompt to create one. If `allow_new = false`, tell the user there are no active projects and suggest running `/onboard` first.
+   - Otherwise, present as a numbered list:
    ```
    Which project?
    1. acme-corp
@@ -22,8 +24,9 @@ Identify which project the user wants to work with.
    - Exact match → use it
    - Partial match (one result) → confirm: "Did you mean `acme-corp`?"
    - Partial match (multiple) → show matches, ask to pick
-   - No match + `allow_new = false` → "No project found. Available: [list]"
-   - No match + `allow_new = true` → treat as new project
+   - No match in `projects/` → also check `archives/`. If found there: "Found `<name>` in archives/. Would you like to re-activate it (move back to projects/) or work on it in place?"
+   - No match anywhere + `allow_new = false` → "No project found. Available: [list]"
+   - No match anywhere + `allow_new = true` → treat as new project
 
 4. **If new project** (only when `allow_new = true`):
    - Convert name to kebab-case, confirm folder name with user

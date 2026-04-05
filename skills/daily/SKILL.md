@@ -7,9 +7,15 @@ description: Generate a live daily briefing by scanning the vault in real-time. 
 
 ## Steps
 
-1. **Project Dashboard + Action Items** — Read every `projects/*/conversation-log.md` file once. In a single pass, extract:
-   - Pending `- [ ]` items from `## Action Items`
-   - Most recent entry date from `## Log`
+1. **Project Dashboard + Action Items** — For each project folder in `projects/`:
+
+> [!sub-workflow] Read Project Context
+> Read and execute `shared/read-project-context.md`
+> Input: each project-name in sequence
+
+   From each project's context, extract:
+   - `pending_actions` — all unchecked action items
+   - `last_activity_date` — most recent log entry date
    - Flag projects with no entries in 14+ days with ⚠️
 
    Build project table:
